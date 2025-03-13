@@ -13,7 +13,8 @@ def generate_radio_layout(annotation_scheme, horizontal=False):
         horizontal = True
 
     schematic = (
-        ('<form id="%s" class="annotation-form radio" action="/action_page.php">' % annotation_scheme["name"] )
+        ('<form id="%s" class="annotation-form radio" action="/action_page.php">' %
+         annotation_scheme["name"])
         + "  <fieldset>"
         + ("  <legend>%s</legend>" % annotation_scheme["description"])
     )
@@ -42,12 +43,13 @@ def generate_radio_layout(annotation_scheme, horizontal=False):
         elif type(label_requirement["right_label"]) == list:
             right_label = set(label_requirement["right_label"])
         else:
-            logger.warning("Incorrect format of right_label %s" % label_requirement["right_label"])
+            logger.warning("Incorrect format of right_label %s" %
+                           label_requirement["right_label"])
             # quit()
 
     for i, label_data in enumerate(annotation_scheme["labels"], 1):
-
-        label = label_data if isinstance(label_data, str) else label_data["name"]
+        label = label_data if isinstance(
+            label_data, str) else label_data["name"]
 
         name = annotation_scheme["name"] + ":::" + label
         class_name = annotation_scheme["name"]
@@ -123,18 +125,26 @@ def generate_radio_layout(annotation_scheme, horizontal=False):
             br_label = ""
         schematic += (
             '      <input class="%s" type="radio" id="%s" name="%s" value="%s" onclick="onlyOne(this)" validation="%s">'
-            + '  <label for="%s" %s>%s</label>%s'
         ) % (
             class_name,
             name,
             name,
             key_value,
             "right_label" if label in right_label else final_validation,
-            name,
-            tooltip,
-            label_content,
-            br_label,
         )
+        if annotation_scheme.get("text_as_label", None) == True:
+            label_content = label_data["text"]
+            schematic += ('  <span>%s</span>%s') % (
+                label_content,
+                br_label,
+            )
+        else:
+            schematic += ('  <label for="%s" %s>%s</label>%s') % (
+                name,
+                tooltip,
+                label_content,
+                br_label,
+            )
 
     if "has_free_response" in annotation_scheme and annotation_scheme["has_free_response"]:
 
