@@ -108,6 +108,15 @@ def generate_radio_layout(annotation_scheme, horizontal=False):
             <video width="320" height="240" autoplay loop muted>
                 <source src="{video_path}" type="video/mp4" />
             </video>"""
+        elif annotation_scheme.get("image_as_label", None) == True:
+            if label_data["name"] == "no-preference":
+                label_content = label_data["text"]
+            else:
+                assert (
+                    "imagepath" in label_data
+                ), "Image path should in each label_data when image_as_label is True."
+                image_path = label_data["imagepath"]
+                label_content = f"""<img src="{image_path}" width="400">"""
 
         # Add shortkey to the label so that the annotators will know how to use
         # it when the shortkey is "None", this will not displayed as we do not
