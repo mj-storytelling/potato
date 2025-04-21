@@ -734,6 +734,19 @@ def load_all_data(config):
             # load the task assignment if it has been generated and saved
             with open(task_assignment_path, "r") as r:
                 task_assignment = json.load(r)
+
+            #Remove any assigned instances whose users are not accounted for in the annotation output directory
+            invalid_users = set([])
+            valid_users = set([name for name in os.listdir(config["output_annotation_dir"]) 
+                            if os.path.isdir(os.path.join(config["output_annotation_dir"], name))])
+            for user_ids in task_assignment["assigned"].values():
+                if type(user_ids) != list:
+                    continue
+                for user_id in user_ids:
+                    if user_id not in valid_users:
+                        invalid_users.add(user_id)
+            remove_instances_from_users(list(invalid_users))
+            
         else:
             # Otherwise generate a new task assignment dict
             task_assignment = {
