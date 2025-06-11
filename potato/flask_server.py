@@ -25,6 +25,7 @@ import flask
 from flask import Flask, render_template, request
 from bs4 import BeautifulSoup
 import shutil
+import uuid
 
 cur_working_dir = os.getcwd() #get the current working dir
 cur_program_dir = os.path.dirname(os.path.abspath(__file__)) #get the current program dir (for the case of pypi, it will be the path where potato is installed)
@@ -1114,7 +1115,6 @@ def home():
         print("debug user logging in")
         return annotate_page("debug_user", action="home")
     if "login" in config:
-
         try:
             if config["login"]["type"] == "url_direct":
                 url_arguments = (
@@ -1123,8 +1123,29 @@ def home():
                 if type(url_arguments) == str:
                     url_arguments = [url_arguments]
                 username = '&'.join([request.args.get(it) for it in url_arguments])
+                if username == config["login"]["placeholder"]:
+                    return render_template(
+                        "error.html",
+                        error_message="Your username is not set, please provide a valid username in the URL",
+                    )
                 print("url direct logging in with %s=%s" % ('&'.join(url_arguments),username))
                 return annotate_page(username, action="home")
+            elif config["login"]["type"] == "auto_url_direct":
+                # redirect the user to the url with random values
+                url_arguments = (
+                    config["login"]["url_argument"] if "url_argument" in config["login"] else "username"
+                )
+                if type(url_arguments) == str:
+                    url_arguments = [url_arguments]
+                # check if the parameters exist
+                if not all([request.args.get(it) for it in url_arguments]):
+                    random_values = [str(uuid.uuid4()) for _ in url_arguments]
+                    username = '&'.join([f"{it}={random_values[i]}" for i, it in enumerate(url_arguments)])
+                    return flask.redirect("/?" + username)
+                else:
+                    username = '&'.join([request.args.get(it) for it in url_arguments])
+                    print("auto url direct logging in with %s=%s" % ('&'.join(url_arguments),username))
+                    return annotate_page(username, action="home")
             elif config["login"]["type"] == "prolific":
                 #we force the order of the url_arguments for prolific logins, so that we can easily retrieve
                 #the session and study information
